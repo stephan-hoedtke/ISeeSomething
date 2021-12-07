@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">I see something you don\'t see</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="app_title">I see something you don\'t see and it\'s blue.</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_list">List</string>
+    <string name="menu_details">Details</string>
+
+    <string name="lock_alert_title">Lock Screen</string>
+    <string name="lock_alert_body">
+        Secure lock screen hasn\'t set up.
+        To continue working with this app,
+        please go to Settings and set a lock screen method.</string>
+    <string name="lock_alert_settings">Settings</string>
+    <string name="lock_alert_exit">Exit</string>
+    <string name="default_category">Default Category</string>
+    <string name="default_size">17</string>
+    <string name="default_title">Default Title</string>
+    <string name="default_url">https://www.google.com</string>
+    <string name="default_user">Default User</string>
+    <string name="default_password">*****</string>
+    <string name="default_description">******* \n******** \n*************</string>
+    <string name="default_date">2021–12–03</string>
+    <string name="default_created">2021–12–03 17:24</string>
+    <string name="default_modified">2021–12–03 17:24</string>
+    <string name="label_button_next">Next</string>
+    <string name="label_category">Category</string>
+    <string name="label_title">Name</string>
+    <string name="label_url">Url</string>
+    <string name="label_user">Name</string>
+    <string name="label_password">Name</string>
+    <string name="label_description">Description</string>
+    <string name="label_created">Created At</string>
+    <string name="label_modified">Modified At</string>
+    <string name="label_show_password">Show</string>
+    <string name="fragment_list_title">Category: %s</string>
+</resources>
