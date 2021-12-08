@@ -24,7 +24,10 @@ class ListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = createViewModel()
+        viewModel = ViewModelProvider(requireActivity())[ListViewModel::class.java].also {
+            val category = getCategoryFromArguments()
+            it.setCategory(category)
+        }
     }
 
     override fun onCreateView(
@@ -34,15 +37,6 @@ class ListFragment : Fragment() {
         adapter = ListViewAdapter(requireActivity()) { entry -> onClickItem(entry) }
         binding = FragmentListBinding.inflate(inflater, container, false)
         binding.list.adapter = adapter
-
-        setHasOptionsMenu(true)
-
-        val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
-        actionBar?.also {
-            it.setDisplayHomeAsUpEnabled(true)
-            it.setHomeButtonEnabled(true)
-        }
-
         return binding.root
     }
 
@@ -89,12 +83,6 @@ class ListFragment : Fragment() {
 
     private fun getTitleString(category: String): String {
         return getString(R.string.fragment_list_title, category)
-    }
-
-    private fun createViewModel(): ListViewModel {
-        val category = getCategoryFromArguments()
-        val factory = ListViewModelFactory(requireActivity().application, category)
-        return ViewModelProvider(requireActivity(), factory)[ListViewModel::class.java]
     }
 
     private fun getCategoryFromArguments(defaultValue: String = DEFAULT_CATEGORY): String =

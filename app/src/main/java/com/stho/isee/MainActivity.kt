@@ -42,11 +42,11 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController()
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
+        // Mind: top level destinations use the burger icon, while other use the back arrow icon.
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.nav_home,
-                R.id.nav_list,
-            ), drawerLayout
+             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
