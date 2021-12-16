@@ -1,6 +1,7 @@
 package com.stho.isee.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,6 +38,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.showFab()
         viewModel.categoriesLD.observe(viewLifecycleOwner) { categories -> onObserveCategories(categories) }
     }
 
@@ -45,6 +47,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun onClickItem(entry: HomeListEntry) {
+        Log.d("CLICK", "Entry: ${entry.category}")
         val action = HomeFragmentDirections.actionNavHomeToNavList(entry.category)
         findNavController().navigate(action)
     }

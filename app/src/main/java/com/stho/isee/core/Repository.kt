@@ -13,13 +13,19 @@ class Repository(context: Context) {
         value = getEntriesFromDB(context)
     }
 
+    private val showFabLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>().apply { value = true }
+
     val entriesLD: LiveData<List<Entry>>
         get() = Transformations.map(entriesLiveData) { entries -> entries }
+
+    val showFabLD: LiveData<Boolean>
+        get() = showFabLiveData
 
     private fun getEntriesFromDB(context: Context): ArrayList<Entry> {
         return ArrayList<Entry>().also {
             it.add(getEntry(1))
             it.add(getEntry(2))
+            it.add(getEntry(3))
         }
     }
 
@@ -48,8 +54,27 @@ class Repository(context: Context) {
                 created = Calendar.getInstance(),
                 modified = Calendar.getInstance(),
             )
+            3 -> Entry.createFromDB(
+                id = 3,
+                category = "Computer",
+                title = "Gitlab",
+                url = "gitlab.com",
+                user = "stephan.hoedtke@gmx.de",
+                password = "something else",
+                description = "stephan hoedtke @ gitlab for Android projects ...",
+                created = Calendar.getInstance(),
+                modified = Calendar.getInstance(),
+            )
             else -> throw Exception("Invalid entry id")
         }
+    }
+
+    fun showFab() {
+        showFabLiveData.postValue(true)
+    }
+
+    fun hideFab() {
+        showFabLiveData.postValue(false)
     }
 
     companion object {

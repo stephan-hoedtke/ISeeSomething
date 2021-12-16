@@ -3,6 +3,7 @@ package com.stho.isee
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.Menu
+import android.view.MenuItem
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -13,6 +14,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.stho.isee.databinding.ActivityMainBinding
@@ -23,20 +25,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var systemServices: SystemServices
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         systemServices = SystemServices(this)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
-        binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+        binding.appBarMain.fab.setOnClickListener { _ ->
+            createNewEntry()
         }
+
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController()
@@ -50,6 +54,12 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        onActivityCreated()
+    }
+
+    private fun onActivityCreated() {
+        viewModel.showFabLD.observe(this) { show -> onObserveShowFab(show) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -75,6 +85,16 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    private fun onObserveShowFab(show: Boolean) {
+        binding.appBarMain.fab.apply {
+            if (show) show() else hide()
+        }
+    }
+
+    private fun createNewEntry() {
+        findNavController().navigate(R.id.action_global_nav_details)
+    }
+
     private fun findNavController(): NavController {
         // Note, when the nav_host_fragment fragment is replaced by FragmentContainerView in activity_main.xml
         // as suggested by lint, then
@@ -85,5 +105,7 @@ class MainActivity : AppCompatActivity() {
         val  navHostFragment: NavHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
         return navHostFragment.navController
     }
+
+
 }
 

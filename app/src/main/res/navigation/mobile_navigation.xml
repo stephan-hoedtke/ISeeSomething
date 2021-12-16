@@ -37,6 +37,6 @@
             android:name="ID"
             app:argType="integer"
             android:defaultValue="0" />
-    </fragment>
+    </fragment><action android:id="@+id/action_global_nav_details" app:destination="@id/nav_details"/>
 
 </navigation>
