@@ -27,51 +27,73 @@ class Entry(
 
     var category: String = category
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var title: String = title
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var user: String = user
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var url: String = url
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var password: String = password
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var description: String = description
         set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var created: Calendar = created
         private set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
 
     var modified: Calendar = modified
         private set(value) {
-            field = value
-            touch()
+            if (field != value) {
+                field = value
+                touch()
+            }
         }
+
+    val isNew: Boolean
+        get() = (status == Status.NEW)
+
+    val isModified: Boolean
+        get() = (status != Status.CLEAN)
 
     private fun touch() {
         modified = Calendar.getInstance()
@@ -81,6 +103,22 @@ class Entry(
     private fun clear() {
         status = Status.CLEAN
     }
+
+    fun clone(): Entry =
+        Entry(id, category, title, url, user, password, description, created, modified)
+
+    fun restore(entry: Entry) {
+        this.id = entry.id
+        this.category = entry.category
+        this.title = entry.title
+        this.url = entry.url
+        this.user = entry.user
+        this.password = entry.password
+        this.created = entry.created
+        this.modified = entry.modified
+        this.status = Status.CLEAN
+    }
+
 
     companion object {
         fun createFromDB(

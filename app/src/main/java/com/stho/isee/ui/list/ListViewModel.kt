@@ -1,10 +1,7 @@
 package com.stho.isee.ui.list
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.*
 import com.stho.isee.core.Entry
 import com.stho.isee.core.Repository
 
@@ -18,16 +15,25 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
         get() = categoryLiveData
 
     val entriesLD
-        get() = Transformations.map(repository.entriesLD) { entries -> entries.filter { entry -> entry.category == category } }
+        get() = Transformations.switchMap(categoryLiveData) {
+            category -> Transformations.map(repository.entriesLD) {
+                entries -> filterEntries(entries, category)
+            }
+        }
 
     fun setCategory(category: String) {
         if (categoryLiveData.value != category) {
-            categoryLiveData.postValue(category)
+            categoryLiveData.value = category
         }
     }
 
-    private val category: String
-        get() = categoryLiveData.value ?: ""
+    fun showFab() {
+        repository.showFab()
+    }
+
+    private fun filterEntries(entries: List<Entry>, category: String): List<Entry> =
+        entries.filter { entry -> entry.category == category }
+
 }
 
 

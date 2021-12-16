@@ -30,5 +30,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             return list
         }
     }
+
+    fun showFab() {
+        repository.showFab()
+    }
+
 }
 

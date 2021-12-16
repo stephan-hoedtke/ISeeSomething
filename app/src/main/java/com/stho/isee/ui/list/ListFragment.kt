@@ -3,11 +3,13 @@ package com.stho.isee.ui.list
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.text.Layout
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavDirections
 import androidx.navigation.Navigation
@@ -54,11 +56,13 @@ class ListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.showFab()
         viewModel.categoryLD.observe(viewLifecycleOwner, { category -> onObserveCategory(category) })
         viewModel.entriesLD.observe(viewLifecycleOwner) { entries -> onObserveEntries(entries) }
     }
 
     private fun onClickItem(entry: Entry) {
+        Log.d("CLICK", "Entry: ${entry.title}")
         val action = ListFragmentDirections.actionNavListToNavDetails(entry.id)
         findNavController().navigate(action)
     }
@@ -72,14 +76,14 @@ class ListFragment : Fragment() {
     }
 
     private fun updateActionBar(title: String) {
-        val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
         actionBar?.also {
             it.title = title
             it.subtitle = null
-            // it.setDisplayHomeAsUpEnabled(true)
-            // it.setHomeButtonEnabled(true)
         }
     }
+
+    private val actionBar: ActionBar?
+        get() = (requireActivity() as AppCompatActivity).supportActionBar
 
     private fun getTitleString(category: String): String {
         return getString(R.string.fragment_list_title, category)
