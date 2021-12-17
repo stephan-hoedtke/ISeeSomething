@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import com.google.android.material.textfield.TextInputEditText
 import com.stho.isee.R
 import com.stho.isee.core.Entry
 import com.stho.isee.core.Repository
@@ -114,14 +115,22 @@ class DetailsFragment : Fragment() {
     }
 
     private fun onObserveEntry(entry: Entry) {
-        binding.category.setText(entry.category)
-        binding.title.setText(entry.title)
-        binding.url.setText(entry.url)
-        binding.user.setText(entry.user)
-        binding.password.setText(HIDDEN_PASSWORD)
-        binding.description.setText(entry.description)
+        updateTextEdit(binding.category, entry.category)
+        updateTextEdit(binding.category, entry.category)
+        updateTextEdit(binding.title, entry.title)
+        updateTextEdit(binding.url, entry.url)
+        updateTextEdit(binding.user, entry.user)
+        updateTextEdit(binding.password, entry.password)
+        updateTextEdit(binding.description, entry.description)
         binding.created.text = entry.created.toDateTimeString()
         binding.modified.text = entry.modified.toDateTimeString()
+    }
+
+
+    private fun updateTextEdit(field: TextInputEditText, text: String) {
+        if (!text.equals(field.text.toString())) {
+            field.setText(text)
+        }
     }
 
     private fun onObserveStatus(status: Entry.Status) {
@@ -132,22 +141,18 @@ class DetailsFragment : Fragment() {
         when (mode) {
             DetailsViewModel.PasswordMode.HIDDEN -> {
                 binding.password.isEnabled = false
-                binding.password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.password.setText(HIDDEN_PASSWORD)
-                binding.password.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                binding.password.transformationMethod = PasswordTransformationMethod.getInstance() // HideReturnsTransformationMethod.getInstance()
                 binding.buttonEditPassword.isEnabled = true
                 binding.buttonShowPassword.isEnabled = true
              }
             DetailsViewModel.PasswordMode.HINTS -> {
                 binding.password.isEnabled = false
-                binding.password.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                 binding.buttonEditPassword.isEnabled = false
                 binding.buttonShowPassword.isEnabled = true
                 displayPasswordAnimation()
             }
             DetailsViewModel.PasswordMode.EDIT -> {
                 binding.password.setText("")
-                binding.password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
                 binding.password.isEnabled = true
                 binding.password.transformationMethod = DisplayLastInputPasswordTransformationMethod()
                 binding.buttonEditPassword.isEnabled = false
@@ -200,11 +205,9 @@ class DetailsFragment : Fragment() {
     }
 
     private fun onUpdatePassword(text: Editable?) {
-        if (viewModel.passwordMode == DetailsViewModel.PasswordMode.EDIT) {
-            viewModel.setPasswordMode(DetailsViewModel.PasswordMode.HIDDEN)
-            text?.also {
-                viewModel.setPassword(it.toString())
-            }
+        viewModel.setPasswordMode(DetailsViewModel.PasswordMode.HIDDEN)
+        text?.also {
+            viewModel.setPassword(it.toString())
         }
     }
 
@@ -213,6 +216,7 @@ class DetailsFragment : Fragment() {
 
     private fun stopPasswordAnimation() {
         passwordAnimationJob?.cancel()
+        binding.password.transformationMethod = PasswordTransformationMethod.getInstance()
     }
 
     private fun confirmUserAuthorization(): Boolean {
@@ -224,12 +228,14 @@ class DetailsFragment : Fragment() {
         passwordAnimationJob = CoroutineScope(Dispatchers.Default).launch {
             val length = viewModel.passwordLength
             for (index in 0 .. length) {
-                if (viewModel.passwordMode == DetailsViewModel.PasswordMode.HINTS) {
-                    val hint = viewModel.getPasswordHint(index)
-                    binding.password.setText(hint)
+                if (viewModel.passwordMode != DetailsViewModel.PasswordMode.HINTS) {
+                    break;
+                } else {
+                    binding.password.transformationMethod = DisplayPasswordHintTransformationMethod(index)
                     delay(PASSWORD_HINT_DELAY)
                 }
             }
+            binding.password.transformationMethod = PasswordTransformationMethod.getInstance()
             viewModel.setPasswordMode(DetailsViewModel.PasswordMode.HIDDEN)
         }
     }
@@ -259,7 +265,6 @@ class DetailsFragment : Fragment() {
 
     companion object {
         private const val PASSWORD_HINT_DELAY = 1111L
-        private const val HIDDEN_PASSWORD = "********"
         private const val KEY_ID = "ID"
     }
 }

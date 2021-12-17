@@ -39,13 +39,6 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     val passwordLength: Int
         get() = entry.password.length
 
-    fun getPasswordHint(index: Int): String {
-        val password = entry.password
-        val length = password.length
-        val hint = (0 until length).map { i -> if (i == index) password[i] else '*' }
-        return hint.joinToString("")
-    }
-
     val passwordMode: PasswordMode
         get() = passwordModeLiveData.value ?: PasswordMode.HIDDEN
 
