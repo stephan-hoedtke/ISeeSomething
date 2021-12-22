@@ -108,6 +108,17 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- PASSWORD -->
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkbox_plain_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/password_layout"
+                app:layout_constraintStart_toStartOf="parent"
+                android:text="@string/label_display_plain_text"
+                android:layout_marginHorizontal="@dimen/fab_margin"
+                />
+
             <ImageView
                 android:id="@+id/button_edit_password"
                 android:layout_width="@dimen/image_button_size"
@@ -136,7 +147,7 @@
                 android:id="@+id/description_layout"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                app:layout_constraintTop_toBottomOf="@id/password_layout"
+                app:layout_constraintTop_toBottomOf="@id/checkbox_plain_text"
                 android:layout_margin="@dimen/fab_margin">
 
                 <com.google.android.material.textfield.TextInputEditText

@@ -1,7 +1,6 @@
 package com.stho.isee.ui.details
 
 import android.app.Application
-import android.text.Editable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,14 +11,18 @@ import com.stho.isee.core.Repository
 class DetailsViewModel(application: Application, entry: Entry) : AndroidViewModel(application) {
 
     enum class PasswordMode {
+        VISIBLE,
         HIDDEN,
         HINTS,
+        INPUT,
         EDIT,
     }
+
     private val repository = Repository.getInstance(application.applicationContext)
     private val backup: Entry = entry.clone()
     private val entryLiveData: MutableLiveData<Entry> = MutableLiveData<Entry>().apply { value = entry }
     private val passwordModeLiveData: MutableLiveData<PasswordMode> = MutableLiveData<PasswordMode>().apply { value = PasswordMode.HIDDEN }
+    private val passwordMirrorLiveData: MutableLiveData<String> = MutableLiveData<String>().apply { value = entry.password }
 
     val statusLD: LiveData<Entry.Status>
         get() = Transformations.map(entryLD) { entry -> entry.status }
@@ -30,8 +33,27 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     val passwordModeLD: LiveData<PasswordMode>
         get() = passwordModeLiveData
 
+    val passwordMirrorLD: LiveData<String>
+        get() = passwordMirrorLiveData
+
+    var passwordMirror: String
+        get() = passwordMirrorLiveData.value ?: ""
+        set(value) {
+            if (passwordMirrorLiveData.value != value) {
+                passwordMirrorLiveData.postValue(value)
+            }
+        }
+
     val isModified: Boolean
-        get() = entryLiveData.value?.isModified ?: false
+        get() {
+            entryLiveData.value?.let {
+                if (it.isModified)
+                    return true
+                if (it.password != passwordMirror)
+                    return true
+            }
+            return false
+        }
 
     val entry: Entry
         get() = entryLiveData.value!!
@@ -39,14 +61,31 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     val passwordLength: Int
         get() = entry.password.length
 
-    val passwordMode: PasswordMode
+    var passwordMode: PasswordMode
         get() = passwordModeLiveData.value ?: PasswordMode.HIDDEN
-
-    fun setPasswordMode(newMode: PasswordMode) {
-        if (passwordModeLiveData.value != newMode) {
-            passwordModeLiveData.postValue(newMode)
+        set(value) {
+            if (passwordModeLiveData.value != value) {
+                passwordModeLiveData.postValue(value)
+            }
         }
-    }
+
+    var plainText: Boolean
+        get() = isPasswordVisible(passwordMode)
+        set(value) {
+            if (value) {
+                when (passwordMode) {
+                    PasswordMode.HIDDEN -> passwordMode = PasswordMode.VISIBLE
+                    PasswordMode.INPUT -> passwordMode = PasswordMode.EDIT
+                    else -> {} // just to make Lint happy
+                }
+            } else {
+                when (passwordMode) {
+                    PasswordMode.EDIT -> passwordMode = PasswordMode.INPUT
+                    PasswordMode.VISIBLE -> passwordMode = PasswordMode.HIDDEN
+                    else -> {} // just to make Lint happy
+                }
+            }
+        }
 
     fun touch() {
         entryLiveData.postValue(entryLiveData.value)
@@ -90,5 +129,16 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
             }
         }
     }
-}
 
+    companion object {
+        fun isPasswordVisible(mode: PasswordMode): Boolean {
+            return when (mode) {
+                PasswordMode.VISIBLE -> true
+                PasswordMode.HIDDEN -> false
+                PasswordMode.HINTS -> false
+                PasswordMode.INPUT -> false
+                PasswordMode.EDIT -> true
+            }
+        }
+    }
+}
