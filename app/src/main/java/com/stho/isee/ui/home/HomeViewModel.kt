@@ -9,8 +9,28 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = Repository.getInstance(application.applicationContext)
 
+    private val isAuthenticatedLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>().apply { value = false }
+
     val categoriesLD: LiveData<List<HomeListEntry>>
-        get() = Transformations.map(repository.entriesLD) { entries -> group(entries) }
+        get() = Transformations.switchMap(isAuthenticatedLiveData) { isAuthenticated ->
+            Transformations.map(repository.entriesLD) { entries ->
+                if (isAuthenticated) {
+                    group(entries)
+                } else
+                    ArrayList<HomeListEntry>()
+            }
+        }
+
+    val isAuthenticatedLD: LiveData<Boolean>
+        get() = isAuthenticatedLiveData
+
+    var isAuthenticated: Boolean
+        get() = isAuthenticatedLiveData.value ?: false
+        set(value) {
+            if (isAuthenticatedLiveData.value != value) {
+                isAuthenticatedLiveData.postValue(value)
+            }
+        }
 
     companion object {
 
@@ -34,6 +54,5 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun showFab() {
         repository.showFab()
     }
-
 }
 

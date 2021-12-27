@@ -1,5 +1,6 @@
 package com.stho.isee
 
+import android.hardware.biometrics.BiometricManager
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.Menu
@@ -17,6 +18,7 @@ import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import com.stho.isee.authentication.AuthenticationHandler
 import com.stho.isee.databinding.ActivityMainBinding
 import com.stho.isee.encryption.ui.SystemServices
 
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var systemServices: SystemServices
     private lateinit var viewModel: MainViewModel
+    private lateinit var authenticationHandler: AuthenticationHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +57,6 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
-
         onActivityCreated()
     }
 
@@ -70,19 +72,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (systemServices.isDeviceNotSecure) {
-            systemServices.showDeviceSecurityAlert()
-        }
+        confirmDeviceIsSecure()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onPostCreate(savedInstanceState, persistentState)
-
     }
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    private fun confirmDeviceIsSecure() {
+        if (systemServices.isDeviceNotSecure) {
+            systemServices.showDeviceSecurityAlert()
+        }
     }
 
     private fun onObserveShowFab(show: Boolean) {

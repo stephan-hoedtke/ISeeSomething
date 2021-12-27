@@ -3,7 +3,7 @@ package com.stho.isee.core
 import java.util.*
 
 class Entry(
-    id: Int,
+    id: Long,
     category: String,
     title: String,
     url: String,
@@ -22,7 +22,7 @@ class Entry(
     var status = Status.CLEAN
         private set
 
-    var id: Int = id
+    var id: Long = id
         private set
 
     var category: String = category
@@ -32,6 +32,17 @@ class Entry(
                 touch()
             }
         }
+
+    fun setId(newId: Long) {
+        if (id > 0) {
+            throw Exception("Cannot overwrite an existing database row ID")
+        }
+        id = newId
+    }
+
+    fun setStatus(newStatus: Status) {
+        status = newStatus
+    }
 
     var title: String = title
         set(value) {
@@ -92,16 +103,15 @@ class Entry(
     val isNew: Boolean
         get() = (status == Status.NEW)
 
+    val isNotNew: Boolean
+        get() = (status != Status.NEW)
+
     val isModified: Boolean
         get() = (status != Status.CLEAN)
 
     private fun touch() {
         modified = Calendar.getInstance()
         status = Status.MODIFIED
-    }
-
-    private fun clear() {
-        status = Status.CLEAN
     }
 
     fun clone(): Entry =
@@ -119,10 +129,9 @@ class Entry(
         this.status = Status.CLEAN
     }
 
-
     companion object {
         fun createFromDB(
-            id: Int,
+            id: Long,
             category: String,
             title: String,
             url: String,

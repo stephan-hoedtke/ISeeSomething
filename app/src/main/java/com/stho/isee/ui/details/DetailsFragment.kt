@@ -7,19 +7,30 @@ import android.text.InputType
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.view.*
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.stho.isee.R
+import com.stho.isee.authentication.AuthenticationHandler
+import com.stho.isee.authentication.AuthenticationResult
 import com.stho.isee.core.Entry
 import com.stho.isee.core.Repository
 import com.stho.isee.databinding.FragmentDetailsBinding
 import com.stho.isee.utilities.toDateTimeString
 import kotlinx.coroutines.*
+import java.time.Duration
+import java.util.concurrent.Executor
 
 class DetailsFragment : Fragment() {
 
@@ -34,10 +45,7 @@ class DetailsFragment : Fragment() {
         setupBackPressedHandler()
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentDetailsBinding.inflate(inflater, container, false)
         binding.buttonShowPassword.setOnClickListener { onShowPassword() }
         binding.buttonEditPassword.setOnClickListener { onEditPassword() }
@@ -84,6 +92,22 @@ class DetailsFragment : Fragment() {
         }
     }
 
+
+    private fun setPasswordVisibilityAfterAuthentication(newMode: DetailsViewModel.PasswordMode) {
+        val handler = AuthenticationHandler(this) { result ->
+            when (result) {
+                AuthenticationResult.OK ->
+                    viewModel.passwordMode = newMode
+                AuthenticationResult.Cancel ->
+                    viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
+                AuthenticationResult.Error ->
+                    viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
+            }
+        }
+        handler.confirmAuthentication()
+    }
+
+
     /**
      * see: https://developer.android.com/guide/navigation/navigation-custom-back
      */
@@ -102,7 +126,7 @@ class DetailsFragment : Fragment() {
     }
 
     private fun shouldInterceptBackPressed(): Boolean {
-        return viewModel.isModified
+        return viewModel.isDirty
     }
 
     private fun showInterceptionDialog() {
@@ -151,6 +175,7 @@ class DetailsFragment : Fragment() {
                 binding.buttonEditPassword.isEnabled = true
                 binding.buttonShowPassword.isEnabled = true
                 binding.password.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                binding.checkboxPlainText.isChecked = true
             }
             DetailsViewModel.PasswordMode.HIDDEN -> {
                 binding.buttonEditPassword.isEnabled = true
@@ -197,9 +222,7 @@ class DetailsFragment : Fragment() {
         if (isPasswordAnimationRunning) {
             stopPasswordAnimation()
         } else {
-            if (confirmUserAuthorization()) {
-                viewModel.passwordMode = DetailsViewModel.PasswordMode.HINTS
-            }
+            setPasswordVisibilityAfterAuthentication(DetailsViewModel.PasswordMode.HINTS)
         }
     }
 
@@ -209,7 +232,12 @@ class DetailsFragment : Fragment() {
     }
 
     private fun onCheckPlainText() {
-        viewModel.plainText = binding.checkboxPlainText.isChecked
+        // TODO: implement a consistent way to show the password after confirmation
+        if (binding.checkboxPlainText.isChecked) {
+            setPasswordVisibilityAfterAuthentication(DetailsViewModel.PasswordMode.VISIBLE)
+        } else {
+            viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
+        }
     }
 
     private fun onUpdateCategory(text: Editable?) {
@@ -276,15 +304,15 @@ class DetailsFragment : Fragment() {
     private fun getEntryFromArguments(): Entry {
         val id = getIdFromArguments()
         val repository = Repository.getInstance(requireContext())
-        return if (id > 0) {
-            repository.getEntry(id)
-        } else {
+        return if (id == 0L) {
             Entry.createNew()
+        } else {
+            repository.getEntry(id)
         }
     }
 
-    private fun getIdFromArguments(defaultValue: Int = 0): Int =
-        arguments?.getInt(KEY_ID, defaultValue) ?: defaultValue
+    private fun getIdFromArguments(defaultValue: Long = 0): Long =
+        arguments?.getLong(KEY_ID, defaultValue) ?: defaultValue
 
     companion object {
         private const val PASSWORD_HINT_DELAY = 1111L

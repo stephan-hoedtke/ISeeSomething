@@ -24,11 +24,11 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     private val passwordModeLiveData: MutableLiveData<PasswordMode> = MutableLiveData<PasswordMode>().apply { value = PasswordMode.HIDDEN }
     private val passwordMirrorLiveData: MutableLiveData<String> = MutableLiveData<String>().apply { value = entry.password }
 
-    val statusLD: LiveData<Entry.Status>
-        get() = Transformations.map(entryLD) { entry -> entry.status }
-
     val entryLD: LiveData<Entry>
         get() = entryLiveData
+
+    val statusLD: LiveData<Entry.Status>
+        get() = Transformations.map(entryLD) { entry -> entry.status }
 
     val passwordModeLD: LiveData<PasswordMode>
         get() = passwordModeLiveData
@@ -44,9 +44,11 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
             }
         }
 
-    val isModified: Boolean
+    val isDirty: Boolean
         get() {
             entryLiveData.value?.let {
+                if (it.isNew)
+                    return true
                 if (it.isModified)
                     return true
                 if (it.password != passwordMirror)
@@ -64,27 +66,8 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     var passwordMode: PasswordMode
         get() = passwordModeLiveData.value ?: PasswordMode.HIDDEN
         set(value) {
-            if (passwordModeLiveData.value != value) {
-                passwordModeLiveData.postValue(value)
-            }
-        }
-
-    var plainText: Boolean
-        get() = isPasswordVisible(passwordMode)
-        set(value) {
-            if (value) {
-                when (passwordMode) {
-                    PasswordMode.HIDDEN -> passwordMode = PasswordMode.VISIBLE
-                    PasswordMode.INPUT -> passwordMode = PasswordMode.EDIT
-                    else -> {} // just to make Lint happy
-                }
-            } else {
-                when (passwordMode) {
-                    PasswordMode.EDIT -> passwordMode = PasswordMode.INPUT
-                    PasswordMode.VISIBLE -> passwordMode = PasswordMode.HIDDEN
-                    else -> {} // just to make Lint happy
-                }
-            }
+            // set the value always unconditionally to force all relevant items to be refreshed
+            passwordModeLiveData.postValue(value)
         }
 
     fun touch() {
@@ -92,7 +75,7 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
     }
 
     fun save() {
-        // TODO implement real save...
+        repository.save(entry)
     }
 
     fun restore() {

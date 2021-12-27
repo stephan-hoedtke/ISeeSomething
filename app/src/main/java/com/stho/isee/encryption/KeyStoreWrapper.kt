@@ -32,12 +32,18 @@ class KeyStoreWrapper(private val context: Context) {
     /**
      * Create symmetric key and keep it in the Android Key Store
      * (requires API >= 23)
+     *
+     * Read also: https://developer.android.com/training/sign-in/biometric-auth
      */
     private fun createSymmetricKey(alias: String): SecretKey {
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setUserAuthenticationRequired(true)
+            .setInvalidatedByBiometricEnrollment(true) // TODO confirm behavior
+            // only for API 31
+            // .setUserAuthenticationParameters(VALIDITY_DURATION_SECONDS, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
         keyGenerator.init(builder.build())
         return keyGenerator.generateKey()
     }

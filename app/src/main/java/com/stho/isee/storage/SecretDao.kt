@@ -1,25 +1,25 @@
 package com.stho.isee.storage
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
+import java.util.*
 
 @Dao
 interface SecretDao {
 
-    @Query("SELECT * FROM secret")
-    fun getAll(): List<Secret>
+    @Query("SELECT * FROM secrets ORDER BY id")
+    suspend fun getAll(): List<Secret>
 
-    @Query("SELECT * FROM secret WHERE id IN (:ids)")
-    fun loadAllByIds(ids: IntArray): List<Secret>
+    @Query("SELECT * FROM secrets WHERE id = :id LIMIT 1")
+    suspend fun findById(id: Long): Secret
 
-    @Query("SELECT * FROM secret WHERE id = :id LIMIT 1")
-    fun findById(id: Int): Secret
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(secret: Secret): Long
 
-    @Insert
-    fun insertAll(vararg secrets: Secret)
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(secret: Secret): Int
 
     @Delete
-    fun delete(secret: Secret)
+    suspend fun delete(secret: Secret)
 }
+
+

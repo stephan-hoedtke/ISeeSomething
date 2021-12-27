@@ -35,8 +35,8 @@
         tools:layout="@layout/fragment_details" >
         <argument
             android:name="ID"
-            app:argType="integer"
-            android:defaultValue="0" />
+            app:argType="long"
+            android:defaultValue="0L" />
     </fragment><action android:id="@+id/action_global_nav_details" app:destination="@id/nav_details"/>
 
 </navigation>
