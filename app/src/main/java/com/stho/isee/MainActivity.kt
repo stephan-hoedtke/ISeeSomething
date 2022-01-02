@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createNewEntry() {
-        findNavController().navigate(R.id.action_global_nav_details)
+        findNavController().navigate(R.id.action_global_nav_edit_details)
     }
 
     private fun findNavController(): NavController {

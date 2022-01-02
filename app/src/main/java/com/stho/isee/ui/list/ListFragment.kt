@@ -63,7 +63,7 @@ class ListFragment : Fragment() {
 
     private fun onClickItem(entry: Entry) {
         Log.d("CLICK", "Entry: ${entry.title}")
-        val action = ListFragmentDirections.actionNavListToNavDetails(entry.id)
+        val action = ListFragmentDirections.actionNavListToNavViewDetails(entry.id)
         findNavController().navigate(action)
     }
 

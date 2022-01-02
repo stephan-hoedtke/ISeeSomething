@@ -7,4 +7,6 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="list_entry_size">80dp</dimen>
     <dimen name="image_button_size">48dp</dimen>
+    <dimen name="small_text">13sp</dimen>
+    <dimen name="normal_text">18sp</dimen>
 </resources>

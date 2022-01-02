@@ -5,6 +5,7 @@ import android.view.View
 
 /**
  * This method shows the last character when a password was entered.
+ * It shall be used instead of the default: PasswordTransformationMethod.getInstance() for passwords or
  */
 class DisplayLastInputPasswordTransformationMethod : PasswordTransformationMethod() {
 
