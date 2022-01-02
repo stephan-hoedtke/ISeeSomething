@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.stho.isee.core.Entry
+import java.lang.Exception
 
 class DetailsViewModelFactory(
     private val application: Application,
@@ -11,10 +12,17 @@ class DetailsViewModelFactory(
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
-            return DetailsViewModel(application = application, entry) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+        when {
+            modelClass.isAssignableFrom(EditDetailsViewModel::class.java) -> {
+                EditDetailsViewModel(application = application, entry) as T
+            }
+            modelClass.isAssignableFrom(ViewDetailsViewModel::class.java) -> {
+                ViewDetailsViewModel(application = application, entry) as T
+            }
+            else -> {
+                throw Exception("Invalid class requested from DetailsViewModelFactory: ${modelClass.name}")
+            }
         }
-        return super.create(modelClass)
-    }
 }
+

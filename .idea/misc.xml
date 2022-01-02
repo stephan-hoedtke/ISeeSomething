@@ -3,6 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../../data/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/layout/fragment_edit_details.xml" value="0.1515625" />
+        <entry key="../../../../../data/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/layout/fragment_view_details.xml" value="0.24230072463768115" />
+        <entry key="../../../../../data/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/menu/edit_details.xml" value="0.26458333333333334" />
+        <entry key="../../../../../data/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/menu/view_details.xml" value="0.26458333333333334" />
         <entry key="../../../../../layout/custom_preview.xml" value="0.1" />
         <entry key="..\:/Users/shoedtke/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/layout/content_main.xml" value="0.14270833333333333" />
         <entry key="..\:/Users/shoedtke/AndroidStudioProjects/STHO/ISeeSomething/app/src/main/res/layout/fragment_details.xml" value="0.1" />

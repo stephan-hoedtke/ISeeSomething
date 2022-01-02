@@ -8,18 +8,15 @@ import androidx.lifecycle.Transformations
 import com.stho.isee.core.Entry
 import com.stho.isee.core.Repository
 
-class DetailsViewModel(application: Application, entry: Entry) : AndroidViewModel(application) {
+class ViewDetailsViewModel(application: Application, entry: Entry) : AndroidViewModel(application) {
 
     enum class PasswordMode {
         VISIBLE,
         HIDDEN,
         HINTS,
-        INPUT,
-        EDIT,
     }
 
     private val repository = Repository.getInstance(application.applicationContext)
-    private val backup: Entry = entry.clone()
     private val entryLiveData: MutableLiveData<Entry> = MutableLiveData<Entry>().apply { value = entry }
     private val passwordModeLiveData: MutableLiveData<PasswordMode> = MutableLiveData<PasswordMode>().apply { value = PasswordMode.HIDDEN }
     private val passwordMirrorLiveData: MutableLiveData<String> = MutableLiveData<String>().apply { value = entry.password }
@@ -44,19 +41,6 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
             }
         }
 
-    val isDirty: Boolean
-        get() {
-            entryLiveData.value?.let {
-                if (it.isNew)
-                    return true
-                if (it.isModified)
-                    return true
-                if (it.password != passwordMirror)
-                    return true
-            }
-            return false
-        }
-
     val entry: Entry
         get() = entryLiveData.value!!
 
@@ -70,47 +54,8 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
             passwordModeLiveData.postValue(value)
         }
 
-    fun touch() {
-        entryLiveData.postValue(entryLiveData.value)
-    }
-
-    fun save() {
-        repository.save(entry)
-    }
-
-    fun restore() {
-
-    }
-
     fun hideFab() {
         repository.hideFab()
-    }
-
-    fun setCategory(newCategory: String) {
-        entryLiveData.value?.also {
-            if (it.category != newCategory) {
-                it.category = newCategory
-                entryLiveData.postValue(it)
-            }
-        }
-    }
-
-    fun setTitle(newTitle: String) {
-        entryLiveData.value?.also {
-            if (it.title != newTitle) {
-                it.title = newTitle
-                entryLiveData.postValue(it)
-            }
-        }
-    }
-
-    fun setPassword(newPassword: String) {
-        entryLiveData.value?.also {
-            if (it.password != newPassword) {
-                it.password = newPassword
-                entryLiveData.postValue(it)
-            }
-        }
     }
 
     companion object {
@@ -119,8 +64,6 @@ class DetailsViewModel(application: Application, entry: Entry) : AndroidViewMode
                 PasswordMode.VISIBLE -> true
                 PasswordMode.HIDDEN -> false
                 PasswordMode.HINTS -> false
-                PasswordMode.INPUT -> false
-                PasswordMode.EDIT -> true
             }
         }
     }

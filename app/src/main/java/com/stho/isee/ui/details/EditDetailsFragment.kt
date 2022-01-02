@@ -1,42 +1,32 @@
 package com.stho.isee.ui.details
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.view.*
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
-import com.google.android.material.snackbar.Snackbar
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import com.stho.isee.R
 import com.stho.isee.authentication.AuthenticationHandler
 import com.stho.isee.authentication.AuthenticationResult
 import com.stho.isee.core.Entry
 import com.stho.isee.core.Repository
-import com.stho.isee.databinding.FragmentDetailsBinding
+import com.stho.isee.databinding.FragmentEditDetailsBinding
 import com.stho.isee.utilities.toDateTimeString
 import kotlinx.coroutines.*
-import java.time.Duration
-import java.util.concurrent.Executor
 
-class DetailsFragment : Fragment() {
+class EditDetailsFragment : Fragment() {
 
-    private lateinit var viewModel: DetailsViewModel
-    private lateinit var binding: FragmentDetailsBinding
-    private var passwordAnimationJob: Job? = null
+    private lateinit var viewModel: EditDetailsViewModel
+    private lateinit var binding: FragmentEditDetailsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,15 +36,15 @@ class DetailsFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentDetailsBinding.inflate(inflater, container, false)
-        binding.buttonShowPassword.setOnClickListener { onShowPassword() }
-        binding.buttonEditPassword.setOnClickListener { onEditPassword() }
-        binding.checkboxPlainText.setOnClickListener { onCheckPlainText() }
+        binding = FragmentEditDetailsBinding.inflate(inflater, container, false)
         binding.category.doAfterTextChanged { text -> onUpdateCategory(text) }
         binding.title.doAfterTextChanged { text -> onUpdateTitle(text) }
+        binding.user.doAfterTextChanged { text -> onUpdateUser(text) }
+        binding.url.doAfterTextChanged { text -> onUpdateUrl(text) }
+        binding.description.doAfterTextChanged { text -> onUpdateDescription(text) }
         binding.password.doAfterTextChanged { text -> onUpdatePassword(text) }
         binding.password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
-        binding.password.transformationMethod = PasswordTransformationMethod.getInstance()
+        binding.password.transformationMethod = DisplayLastInputPasswordTransformationMethod()
         return binding.root
     }
 
@@ -63,12 +53,11 @@ class DetailsFragment : Fragment() {
         viewModel.hideFab()
         viewModel.entryLD.observe(viewLifecycleOwner) { entry -> onObserveEntry(entry) }
         viewModel.statusLD.observe(viewLifecycleOwner) { status -> onObserveStatus(status) }
-        viewModel.passwordModeLD.observe(viewLifecycleOwner) { mode -> onObservePasswordMode(mode) }
         viewModel.passwordMirrorLD.observe(viewLifecycleOwner) { password -> onObservePasswordMirror(password) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.details, menu);
+        inflater.inflate(R.menu.view_details, menu);
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -90,21 +79,6 @@ class DetailsFragment : Fragment() {
             // TODO implement dialog ...
             showInterceptionDialog()
         }
-    }
-
-
-    private fun setPasswordVisibilityAfterAuthentication(newMode: DetailsViewModel.PasswordMode) {
-        val handler = AuthenticationHandler(this) { result ->
-            when (result) {
-                AuthenticationResult.OK ->
-                    viewModel.passwordMode = newMode
-                AuthenticationResult.Cancel ->
-                    viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
-                AuthenticationResult.Error ->
-                    viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
-            }
-        }
-        handler.confirmAuthentication()
     }
 
 
@@ -169,38 +143,6 @@ class DetailsFragment : Fragment() {
         updateActionBar(getTitleString(status))
     }
 
-    private fun onObservePasswordMode(mode: DetailsViewModel.PasswordMode) {
-        when (mode) {
-            DetailsViewModel.PasswordMode.VISIBLE -> {
-                binding.buttonEditPassword.isEnabled = true
-                binding.buttonShowPassword.isEnabled = true
-                binding.password.transformationMethod = HideReturnsTransformationMethod.getInstance()
-                binding.checkboxPlainText.isChecked = true
-            }
-            DetailsViewModel.PasswordMode.HIDDEN -> {
-                binding.buttonEditPassword.isEnabled = true
-                binding.buttonShowPassword.isEnabled = true
-                binding.password.transformationMethod = PasswordTransformationMethod.getInstance()
-            }
-            DetailsViewModel.PasswordMode.HINTS -> {
-                binding.buttonEditPassword.isEnabled = false
-                binding.buttonShowPassword.isEnabled = true
-                displayPasswordAnimation()
-            }
-            DetailsViewModel.PasswordMode.INPUT -> {
-                binding.buttonEditPassword.isEnabled = false
-                binding.buttonShowPassword.isEnabled = true
-                binding.password.transformationMethod = DisplayLastInputPasswordTransformationMethod()
-            }
-            DetailsViewModel.PasswordMode.EDIT -> {
-                binding.buttonEditPassword.isEnabled = false
-                binding.buttonShowPassword.isEnabled = true
-                binding.password.transformationMethod = HideReturnsTransformationMethod.getInstance()
-            }
-        }
-        binding.checkboxPlainText.isChecked = DetailsViewModel.isPasswordVisible(mode)
-    }
-
     private fun updateActionBar(title: String) {
         actionBar?.also {
             it.title = title
@@ -218,28 +160,6 @@ class DetailsFragment : Fragment() {
             else -> getString(R.string.fragment_details_title)
         }
 
-    private fun onShowPassword() {
-        if (isPasswordAnimationRunning) {
-            stopPasswordAnimation()
-        } else {
-            setPasswordVisibilityAfterAuthentication(DetailsViewModel.PasswordMode.HINTS)
-        }
-    }
-
-    private fun onEditPassword() {
-        viewModel.passwordMode = DetailsViewModel.PasswordMode.EDIT
-        binding.password.requestFocus()
-    }
-
-    private fun onCheckPlainText() {
-        // TODO: implement a consistent way to show the password after confirmation
-        if (binding.checkboxPlainText.isChecked) {
-            setPasswordVisibilityAfterAuthentication(DetailsViewModel.PasswordMode.VISIBLE)
-        } else {
-            viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
-        }
-    }
-
     private fun onUpdateCategory(text: Editable?) {
         text?.also {
             viewModel.setCategory(it.toString())
@@ -252,42 +172,27 @@ class DetailsFragment : Fragment() {
         }
     }
 
-    private fun onUpdatePassword(text: Editable?) {
-        if (viewModel.passwordMode == DetailsViewModel.PasswordMode.EDIT) {
-            viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
-            text?.also {
-                viewModel.passwordMirror = it.toString()
-            }
+    private fun onUpdateUser(text: Editable?) {
+        text?.also {
+            viewModel.setUser(it.toString())
         }
     }
 
-    private val isPasswordAnimationRunning: Boolean
-        get() = passwordAnimationJob?.isActive ?: false
-
-    private fun stopPasswordAnimation() {
-        passwordAnimationJob?.cancel()
-        binding.password.transformationMethod = DisplayPasswordHintTransformationMethod(0)
-        viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
+    private fun onUpdateUrl(text: Editable?) {
+        text?.also {
+            viewModel.setUrl(it.toString())
+        }
     }
 
-    private fun confirmUserAuthorization(): Boolean {
-        // TODO: Implement
-        return true
+    private fun onUpdateDescription(text: Editable?) {
+        text?.also {
+            viewModel.setDescription(it.toString())
+        }
     }
 
-    private fun displayPasswordAnimation() {
-        passwordAnimationJob = CoroutineScope(Dispatchers.Default).launch {
-            val length = viewModel.passwordLength
-            for (index in 0 .. length) {
-                if (viewModel.passwordMode != DetailsViewModel.PasswordMode.HINTS) {
-                    break;
-                } else {
-                    binding.password.transformationMethod = DisplayPasswordHintTransformationMethod(index)
-                    delay(PASSWORD_HINT_DELAY)
-                }
-            }
-            binding.password.transformationMethod = DisplayPasswordHintTransformationMethod(0)
-            viewModel.passwordMode = DetailsViewModel.PasswordMode.HIDDEN
+    private fun onUpdatePassword(text: Editable?) {
+        text?.also {
+            viewModel.passwordMirror = it.toString()
         }
     }
 
@@ -295,18 +200,18 @@ class DetailsFragment : Fragment() {
         viewModel.save()
     }
 
-    private fun createViewModel(): DetailsViewModel {
+    private fun createViewModel(): EditDetailsViewModel {
         val entry = getEntryFromArguments()
         val factory = DetailsViewModelFactory(requireActivity().application, entry)
-        return ViewModelProvider(this, factory)[DetailsViewModel::class.java]
+        return ViewModelProvider(this, factory)[EditDetailsViewModel::class.java]
     }
 
     private fun getEntryFromArguments(): Entry {
         val id = getIdFromArguments()
-        val repository = Repository.getInstance(requireContext())
         return if (id == 0L) {
             Entry.createNew()
         } else {
+            val repository = Repository.getInstance(requireContext())
             repository.getEntry(id)
         }
     }
@@ -315,7 +220,6 @@ class DetailsFragment : Fragment() {
         arguments?.getLong(KEY_ID, defaultValue) ?: defaultValue
 
     companion object {
-        private const val PASSWORD_HINT_DELAY = 1111L
         private const val KEY_ID = "ID"
     }
 }
